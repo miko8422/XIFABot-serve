@@ -6,7 +6,7 @@ import ctypes
 import os
 from ctypes import wintypes
 
-from . import Foreground
+from .platform import Foreground
 
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 LOCK_APPS = ("lockapp.exe", "logonui.exe")

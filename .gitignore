@@ -6,6 +6,8 @@ dist/
 build/
 *.egg-info/
 
-# holds the token
-config.toml
+# hold tokens
+device.toml
+receiver.toml
 doctor_snapshot.jpg
+check_snapshot.jpg

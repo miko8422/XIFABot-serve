@@ -1,23 +1,23 @@
 [project]
 name = "xifabot-serve"
-version = "0.1.0"
-description = "Read-only information services for the Maid Agent, on the Mac and the Windows PC, over MCP"
+version = "0.2.0"
+description = "A read-only bridge: services on your Windows PC, answered on request, served to agents on your Mac over MCP"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "mcp>=2.3.0",
-    "mss>=10.2.0",
-    "pillow>=12.0.0",
-    "pyobjc-framework-cocoa>=12.2.2 ; sys_platform == 'darwin'",
-    "pyobjc-framework-quartz>=12.2.2 ; sys_platform == 'darwin'",
     "uvicorn>=0.40.0",
+    # only the Windows device side captures and encodes images
+    "mss>=10.2.0 ; sys_platform == 'win32'",
+    "pillow>=12.0.0 ; sys_platform == 'win32'",
 ]
 
 [project.scripts]
 xifabot-serve = "xifabot_serve:main"
 
 [dependency-groups]
-dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0"]
+dev = ["pillow>=12.0.0", "pytest>=9.1.1", "pytest-asyncio>=1.4.0"]
 
 [build-system]
 requires = ["uv_build>=0.11.23,<0.12.0"]
