@@ -25,6 +25,13 @@ from ..gate import TokenGate
 from .client import DeviceClient, DeviceUnavailable
 
 
+def device_url(url: str) -> str:
+    """http://IP:PORT, whatever path or slash was pasted after it."""
+    from urllib.parse import urlparse
+    u = urlparse(url if "://" in url else f"http://{url}")
+    return f"{u.scheme}://{u.netloc}"
+
+
 def build_server(cfg: ReceiverConfig) -> MCPServer:
     server = MCPServer("xifabot-serve", instructions="Information from the user's other devices. Read devices() first.")
     clients = {name: DeviceClient(d, cfg.timeout_s) for name, d in cfg.devices.items()}
@@ -77,9 +84,15 @@ def cli(args) -> None:
               f"XIFABOT_SERVE_URL=http://{cfg.host}:{cfg.port}/mcp\nXIFABOT_SERVE_TOKEN={cfg.token}")
     elif args.cmd == "add":
         cfg = load_receiver(args.config)
-        cfg.devices[args.name] = Device(args.name, args.url.rstrip("/"), args.token)
+        if args.token == cfg.token:
+            raise SystemExit("that is this receiver's own token (it goes in your agent's .env). Use the token that "
+                             "`xifabot-serve device init` printed on the PC.")
+        url = device_url(args.url)
+        if url != args.url.rstrip("/"):
+            print(f"note: using {url} (a device URL is just http://IP:PORT)")
+        cfg.devices[args.name] = Device(args.name, url, args.token)
         cfg.save(args.config)
-        print(f"{args.name}: {args.url} saved. Next: `uv run xifabot-serve receiver check`")
+        print(f"{args.name}: {url} saved. Next: `uv run xifabot-serve receiver check`")
     elif args.cmd == "check":
         from .check import run_check
         raise SystemExit(0 if asyncio.run(run_check(load_receiver(args.config))) else 1)

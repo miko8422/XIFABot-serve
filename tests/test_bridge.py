@@ -151,3 +151,18 @@ async def test_a_failing_capture_reaches_the_agent_with_its_reason(capsys):
         cfg = ReceiverConfig(token="x", devices={"windows": Device("windows", pc_url, "pc-token")})
         assert await run_check(cfg, tries=1) is False
         assert "no display" in capsys.readouterr().out
+
+
+def test_add_takes_a_pasted_path_off_and_refuses_the_receivers_own_token(tmp_path, capsys):
+    import argparse
+    from xifabot_serve.receiver import cli, device_url
+    assert device_url("http://192.168.1.3:8770/mcp") == "http://192.168.1.3:8770"
+    assert device_url("192.168.1.3:8770/") == "http://192.168.1.3:8770"
+    path = tmp_path / "receiver.toml"
+    own = init_receiver(path).token
+    args = argparse.Namespace(cmd="add", config=path, name="windows", url="http://192.168.1.3:8770/mcp", token=own)
+    with pytest.raises(SystemExit, match="receiver's own token"):
+        cli(args)
+    args.token = "pc-token"
+    cli(args)
+    assert load_receiver(path).devices["windows"].url == "http://192.168.1.3:8770" and "note: using" in capsys.readouterr().out

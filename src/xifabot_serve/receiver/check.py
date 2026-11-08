@@ -48,6 +48,9 @@ async def _check_one(c: DeviceClient, tries: int) -> bool:
     try:
         h = await c.health()
     except Exception as e:  # noqa: BLE001
+        if getattr(getattr(e, "response", None), "status_code", None) == 401:
+            return _p(False, "reach", "the PC answered but refused: the URL must be just http://IP:PORT. "
+                      "Run `receiver add` again with the line `device init` printed on the PC.")
         return _p(False, "reach", f"{type(e).__name__}: {e}\n       Is `device serve` running on the PC? Is the IP right? "
                   "Is the PC's network Private and the firewall rule there? Is a VPN on the PC blocking the local "
                   "network (look for allow-LAN or split tunnelling)? Is the Mac on a guest Wi-Fi?")

@@ -68,7 +68,11 @@ def load_device(path: Path = DEVICE_PATH) -> DeviceConfig:
 
 def load_receiver(path: Path = RECEIVER_PATH) -> ReceiverConfig:
     raw = _load(path, "receiver")
-    devices = {n: Device(n, d["url"].rstrip("/"), d["token"]) for n, d in raw.get("devices", {}).items()}
+    from urllib.parse import urlparse
+    devices = {}
+    for n, d in raw.get("devices", {}).items():
+        u = urlparse(d["url"])
+        devices[n] = Device(n, f"{u.scheme}://{u.netloc}", d["token"])  # an old entry may carry a path
     keys = [k for k in ReceiverConfig.__dataclass_fields__ if k in raw and k != "devices"]
     return ReceiverConfig(**{k: raw[k] for k in keys}, devices=devices)
 
